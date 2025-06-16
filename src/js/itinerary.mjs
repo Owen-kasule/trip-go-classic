@@ -1,27 +1,63 @@
 /* itinerary.mjs  –  single source of truth for trip storage */
 import { load, save } from './core/storage.mjs';
 
-/* ─────────────  CRUD helpers ───────────── */
-
-// 1  Add a place (deduplicated by id)
-export function addPlace(place, day = 1) {
+export function addPlace(place) {
   const list = load();
   if (!list.some((p) => p.id === place.id)) {
-    list.push({ ...place, day });        // default day = 1
+    const newPlace = { 
+      ...place, 
+      day: 1, 
+      order: list.length,
+      addedAt: new Date().toISOString(),
+      notes: ''
+    };
+    list.push(newPlace);
+    save(list);
+    return true;
+  }
+  return false;
+}
+
+export const removePlace = (id) => {
+  const list = load().filter((p) => p.id !== id);
+  save(list);
+};
+
+export const updatePlaceDay = (id, day) => {
+  const list = load();
+  const place = list.find(p => p.id === id);
+  if (place) {
+    place.day = day;
     save(list);
   }
-}
+};
 
-// 2  Remove by id
-export const removePlace = (id) => save(load().filter((p) => p.id !== id));
+export const updatePlaceNotes = (id, notes) => {
+  const list = load();
+  const place = list.find(p => p.id === id);
+  if (place) {
+    place.notes = notes;
+    save(list);
+  }
+};
 
-// 3  Read all
+export const reorderPlaces = (fromIndex, toIndex) => {
+  const list = load();
+  const [removed] = list.splice(fromIndex, 1);
+  list.splice(toIndex, 0, removed);
+  list.forEach((place, index) => place.order = index);
+  save(list);
+};
+
 export const getPlaces = () => load();
+export const getPlacesByDay = (day) => load().filter(p => p.day === day);
 
-// 4  Clear everything
-export const clearItinerary = () => localStorage.removeItem('tgc-itinerary');
+export const clearItinerary = () => {
+  localStorage.removeItem('tgc-itinerary');
+  console.log('🗑️ Itinerary cleared');
+};
 
-// 5  Utility: which day numbers are used?
-export function getTripDays() {
-  return [...new Set(load().map((p) => p.day || 1))].sort((a, b) => a - b);
-}
+export const getTripDays = () => {
+  const list = load();
+  return [...new Set(list.map((p) => p.day || 1))].sort((a, b) => a - b);
+};

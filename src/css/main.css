@@ -56,4 +56,135 @@ nav a[href="/"]:focus-visible {
   height: 75vh;          /* or 100vh if you want full-height   */
   min-height: 400px;     /* fallback for small screens         */
 }
-/* ─────────────────────────────── */
+
+/* Map Specific Styles */
+.map-container {
+  background: var(--bg-white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  margin-bottom: 2rem;
+}
+
+.map-header {
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-gray-50);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.map-header h2 {
+  margin: 0;
+  color: var(--text);
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.map-controls {
+  display: flex;
+  gap: 1rem;
+}
+
+.btn-map {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.875rem;
+}
+
+.btn-map:hover {
+  background: var(--primary-dark);
+  transform: translateY(-1px);
+}
+
+.btn-map.btn-danger {
+  background: var(--danger);
+}
+
+.btn-map.btn-danger:hover {
+  background: #dc2626;
+}
+
+/* FIX: Map visibility - this is the key fix */
+#map,
+.map-view {
+  height: 75vh;
+  min-height: 500px;
+  width: 100%;
+  background: #f0f0f0;
+  position: relative;
+}
+
+.map-info {
+  padding: 1rem 2rem;
+  background: var(--bg-gray-50);
+  border-top: 1px solid var(--border);
+}
+
+.map-info p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.map-sidebar {
+  background: var(--bg-white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  padding: 2rem;
+  height: fit-content;
+}
+
+.trip-summary h3 {
+  margin: 0 0 1.5rem 0;
+  color: var(--text);
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.summary-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.summary-item:last-child {
+  border-bottom: none;
+}
+
+.summary-label {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.summary-value {
+  font-weight: 600;
+  color: var(--primary);
+}
+
+@media (max-width: 768px) {
+  .map-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .map-controls {
+    justify-content: center;
+  }
+  
+  .map-view {
+    height: 60vh;
+    min-height: 400px;
+  }
+}
