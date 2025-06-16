@@ -188,3 +188,24 @@ nav a[href="/"]:focus-visible {
     min-height: 400px;
   }
 }
+
+/* Currency specific styling */
+.currency-converter select option[value="UGX"] {
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.currency-converter .rate-info {
+  position: relative;
+}
+
+.currency-converter .rate-info::before {
+  content: "🇺🇬";
+  margin-right: 0.5rem;
+  display: none;
+}
+
+.currency-converter select[id="fromCurrency"]:has(option[value="UGX"]:checked) + .converter-arrow + .currency-input .rate-info::before,
+.currency-converter select[id="toCurrency"]:has(option[value="UGX"]:checked) ~ .rate-info::before {
+  display: inline;
+}

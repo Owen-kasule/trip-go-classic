@@ -16,22 +16,28 @@ export default class CurrencyConverter {
           <div class="currency-input">
             <input type="number" id="amount" placeholder="100" value="100">
             <select id="fromCurrency">
-              <option value="USD">USD</option>
-              <option value="EUR">EUR</option>
-              <option value="GBP">GBP</option>
-              <option value="JPY">JPY</option>
-              <option value="CAD">CAD</option>
+              <option value="USD">USD - US Dollar</option>
+              <option value="EUR">EUR - Euro</option>
+              <option value="GBP">GBP - British Pound</option>
+              <option value="UGX">UGX - Ugandan Shilling</option>
+              <option value="KES">KES - Kenyan Shilling</option>
+              <option value="TZS">TZS - Tanzanian Shilling</option>
+              <option value="JPY">JPY - Japanese Yen</option>
+              <option value="CAD">CAD - Canadian Dollar</option>
             </select>
           </div>
           <div class="converter-arrow">→</div>
           <div class="currency-input">
             <input type="text" id="result" readonly placeholder="0.00">
             <select id="toCurrency">
-              <option value="EUR">EUR</option>
-              <option value="USD">USD</option>
-              <option value="GBP">GBP</option>
-              <option value="JPY">JPY</option>
-              <option value="CAD">CAD</option>
+              <option value="UGX">UGX - Ugandan Shilling</option>
+              <option value="USD">USD - US Dollar</option>
+              <option value="EUR">EUR - Euro</option>
+              <option value="GBP">GBP - British Pound</option>
+              <option value="KES">KES - Kenyan Shilling</option>
+              <option value="TZS">TZS - Tanzanian Shilling</option>
+              <option value="JPY">JPY - Japanese Yen</option>
+              <option value="CAD">CAD - Canadian Dollar</option>
             </select>
           </div>
         </div>
@@ -67,13 +73,30 @@ export default class CurrencyConverter {
       const rate = await getRate(from, to);
       const converted = (amount * rate).toFixed(2);
       
-      result.value = converted;
-      rateInfo.textContent = `1 ${from} = ${rate.toFixed(4)} ${to}`;
+      result.value = this.formatCurrency(converted, to);
+      rateInfo.textContent = `1 ${from} = ${this.formatCurrency(rate, to)}`;
       this.currentRate = rate;
     } catch (error) {
       console.error('Currency conversion error:', error);
       result.value = '';
       rateInfo.textContent = 'Conversion failed. Please try again.';
     }
+  }
+
+  formatCurrency(amount, currency) {
+    const num = parseFloat(amount);
+    
+    // Format large amounts (like UGX) with commas
+    if (currency === 'UGX' || currency === 'TZS' || currency === 'KES') {
+      return new Intl.NumberFormat('en-US', {
+        maximumFractionDigits: 0
+      }).format(num);
+    }
+    
+    // Format smaller amounts with 2-4 decimal places
+    return new Intl.NumberFormat('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 4
+    }).format(num);
   }
 }
