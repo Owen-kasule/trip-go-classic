@@ -2,57 +2,133 @@ import { autosuggest } from '../services/opentrip.mjs';
 import CardList from '../ui/CardList.mjs';
 import CurrencyConverter from '../ui/CurrencyConverter.mjs';
 import ItineraryPlanner from '../ui/ItineraryPlanner.mjs';
+import MapView from '../ui/MapView.mjs';
 
 console.log('🏠 Home page script loading...');
 
-// Initialize when DOM is ready
-if (document.readyState === 'loading') {
-  console.log('📄 DOM still loading, waiting...');
-  document.addEventListener('DOMContentLoaded', initApp);
-} else {
-  console.log('📄 DOM already loaded, initializing...');
-  initApp();
+// Simple router
+function handleRoute() {
+  const hash = window.location.hash.slice(1) || 'home';
+  
+  if (hash === 'map') {
+    showMapView();
+  } else {
+    showHomeView();
+  }
 }
 
-function initApp() {
-  console.log('🚀 Initializing app...');
+function showHomeView() {
+  document.body.innerHTML = `
+    <header>
+      <h1>🌍 Trip Go Classic</h1>
+      <p>Plan your perfect adventure</p>
+    </header>
+    
+    <nav>
+      <a href="#home">🏠 Home</a>
+      <a href="#map">🗺️ Map View</a>
+    </nav>
+    
+    <section class="search-section">
+      <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="Search for places, attractions, restaurants..." />
+        <button id="searchBtn">🔍 Search</button>
+      </div>
+    </section>
+    
+    <main>
+      <div class="app-container">
+        <div class="app-grid">
+          <div class="content-area">
+            <div class="content-header">
+              <h2>Search Results</h2>
+            </div>
+            <div class="card-grid"></div>
+          </div>
+          
+          <aside class="sidebar">
+            <div class="currency-section"></div>
+            <div class="itinerary-section"></div>
+          </aside>
+        </div>
+      </div>
+    </main>
+    
+    <footer>
+      <p>&copy; 2025 Trip Go Classic | Made with ❤️ for travelers</p>
+    </footer>
+  `;
   
-  // Initialize components
-  console.log('🔧 Creating components...');
+  initHomeApp();
+}
+
+function showMapView() {
+  document.body.innerHTML = `
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <header>
+      <h1>🗺️ Your Trip Map</h1>
+      <p>Visualize your planned destinations</p>
+    </header>
+    
+    <nav>
+      <a href="#home">← Back to Search</a>
+      <a href="#map">🗺️ Map View</a>
+    </nav>
+    
+    <main>
+      <div class="app-container">
+        <div class="map-container">
+          <div class="map-header">
+            <h2>📍 Your Trip Locations</h2>
+            <div class="map-controls">
+              <button id="centerMap" class="btn-map">📍 Center Map</button>
+              <button id="clearMap" class="btn-map btn-danger">🗑️ Clear All</button>
+            </div>
+          </div>
+          <div id="map" class="map-view"></div>
+          <div class="map-info">
+            <p id="mapStatus">Loading your trip locations...</p>
+          </div>
+        </div>
+        
+        <aside class="map-sidebar">
+          <div class="trip-summary">
+            <h3>📋 Trip Summary</h3>
+            <div id="tripSummary"></div>
+          </div>
+        </aside>
+      </div>
+    </main>
+    
+    <footer>
+      <p>&copy; 2025 Trip Go Classic | Made with ❤️ for travelers</p>
+    </footer>
+  `;
+  
+  // Load Leaflet
+  const script = document.createElement('script');
+  script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+  script.onload = initMapApp;
+  document.head.appendChild(script);
+}
+
+function initHomeApp() {
+  // Your existing home app initialization code
   const cardList = new CardList('.card-grid');
   const currencyConverter = new CurrencyConverter('.currency-section');
   const itineraryPlanner = new ItineraryPlanner('.itinerary-section');
 
-  // Search functionality
-  console.log('🔍 Setting up search...');
   const searchInput = document.querySelector('#searchInput');
   const searchBtn = document.querySelector('#searchBtn');
   const contentHeader = document.querySelector('.content-header h2');
 
-  console.log('📋 Elements found:', {
-    searchInput: !!searchInput,
-    searchBtn: !!searchBtn,
-    contentHeader: !!contentHeader
-  });
-
   if (searchBtn && searchInput) {
-    console.log('✅ Binding search events...');
-    
-    searchBtn.addEventListener('click', (e) => {
-      console.log('🖱️ Search button clicked!');
-      e.preventDefault();
-      search();
-    });
-    
+    searchBtn.addEventListener('click', search);
     searchInput.addEventListener('keyup', (e) => {
-      if (e.key === 'Enter') {
-        console.log('⌨️ Enter key pressed!');
-        e.preventDefault();
-        search();
-      }
+      if (e.key === 'Enter') search();
     });
 
-    // Auto-suggest with debouncing
     let searchTimeout;
     searchInput.addEventListener('input', (e) => {
       clearTimeout(searchTimeout);
@@ -65,35 +141,25 @@ function initApp() {
       }
       
       if (query.length >= 3) {
-        console.log('📝 Auto-searching for:', query);
         searchTimeout = setTimeout(() => search(), 500);
       }
     });
-  } else {
-    console.error('❌ Search elements not found!');
   }
 
   async function search() {
-    console.log('🔍 Search function called!');
     const query = searchInput.value.trim();
-    console.log('📝 Search query:', query);
-    
     if (!query || query.length < 2) {
-      console.log('⚠️ Query too short, clearing results');
       cardList.render([]);
       if (contentHeader) contentHeader.textContent = 'Search Results';
       return;
     }
 
     try {
-      console.log('🔄 Starting search...');
       searchBtn.disabled = true;
       searchBtn.textContent = '⏳ Searching...';
       if (contentHeader) contentHeader.textContent = `Searching for "${query}"...`;
       
       const results = await autosuggest(query, 20);
-      console.log('📋 Search results:', results);
-      
       cardList.render(results);
       
       if (contentHeader) {
@@ -102,30 +168,47 @@ function initApp() {
           : `No results for "${query}"`;
       }
     } catch (err) {
-      console.error('❌ Search error:', err);
+      console.error('Search error:', err);
       cardList.render([]);
       if (contentHeader) contentHeader.textContent = 'Search failed - please try again';
     } finally {
       searchBtn.disabled = false;
       searchBtn.textContent = '🔍 Search';
-      console.log('✅ Search completed');
     }
   }
 
-  // Refresh itinerary when storage changes
-  window.addEventListener('storage', () => {
-    itineraryPlanner.render();
-  });
-
-  // Periodic refresh for itinerary
-  setInterval(() => {
-    itineraryPlanner.render();
-  }, 3000);
-
-  // Initial search suggestion
   if (contentHeader) {
     contentHeader.textContent = 'Start by searching for places above';
   }
+}
+
+function initMapApp() {
+  const mapView = new MapView('map');
+  mapView.updateTripSummary();
   
-  console.log('✅ App initialization complete!');
+  const centerBtn = document.getElementById('centerMap');
+  const clearBtn = document.getElementById('clearMap');
+  
+  if (centerBtn) {
+    centerBtn.addEventListener('click', () => mapView.centerMap());
+  }
+  
+  if (clearBtn) {
+    clearBtn.addEventListener('click', () => {
+      if (confirm('Are you sure you want to clear all places from your trip?')) {
+        mapView.clearAllPlaces();
+      }
+    });
+  }
+}
+
+// Initialize router
+window.addEventListener('hashchange', handleRoute);
+window.addEventListener('load', handleRoute);
+
+// Initialize on DOM ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', handleRoute);
+} else {
+  handleRoute();
 }

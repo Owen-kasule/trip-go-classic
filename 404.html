@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Trip Go Classic</title>
+    <script>
+        // GitHub Pages SPA redirect
+        const path = window.location.pathname.slice(1);
+        if (path && path !== 'index.html') {
+            window.location.replace('/trip-go-classic/?route=' + path);
+        }
+    </script>
+</head>
+<body></body>
+</html>
