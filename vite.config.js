@@ -1,7 +1,8 @@
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-  root: '.',  // Serve from project root (where index.html is)
+  root: '.',
+  base: '/trip-go-classic/', // Replace with your actual repo name
   build: {
     outDir: 'dist',
     emptyOutDir: true,
