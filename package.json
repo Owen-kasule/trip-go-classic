@@ -1,0 +1,32 @@
+{
+  "name": "trip-go-classic",
+  "version": "1.0.0",
+  "description": "A clean-slate build of a travel planning application using vanilla JavaScript and Vite.",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build --emptyOutDir",
+    "preview": "vite preview",
+    "lint": "eslint \"src/**/*.{js,mjs}\"",
+    "format": "prettier -w \"src/**/*.{js,mjs,html,css}\"",
+    "test": "vitest run"
+  },
+  "keywords": [
+    "travel",
+    "planning",
+    "vanilla-js",
+    "vite"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "devDependencies": {
+    "eslint": "^8.0.0",
+    "eslint-plugin-import": "^2.0.0",
+    "happy-dom": "^18.0.1",
+    "prettier": "^2.0.0",
+    "vitest": "^3.2.3"
+  },
+  "dependencies": {
+    "leaflet": "^1.7.1"
+  }
+}
