@@ -5,21 +5,49 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Map - Trip Go Classic</title>
     <link rel="stylesheet" href="/src/css/main.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   </head>
   <body>
     <header>
-      <h1>Your Trip Map</h1>
-      <nav>
-        <a href="/">← Back to Search</a>
-      </nav>
+      <h1>🗺️ Your Trip Map</h1>
+      <p>Visualize your planned destinations</p>
     </header>
     
+    <nav>
+      <a href="/" id="backToSearch">← Back to Search</a>
+      <a href="/map.html">🗺️ Map View</a>
+    </nav>
+    
     <main>
-      <div id="map" style="height: 400px; background: #eee;">
-        Map will load here
+      <div class="app-container">
+        <div class="map-container">
+          <div class="map-header">
+            <h2>📍 Your Trip Locations</h2>
+            <div class="map-controls">
+              <button id="centerMap" class="btn-map">📍 Center Map</button>
+              <button id="clearMap" class="btn-map btn-danger">🗑️ Clear All</button>
+            </div>
+          </div>
+          <div id="map" class="map-view"></div>
+          <div class="map-info">
+            <p id="mapStatus">Loading your trip locations...</p>
+          </div>
+        </div>
+        
+        <aside class="map-sidebar">
+          <div class="trip-summary">
+            <h3>📋 Trip Summary</h3>
+            <div id="tripSummary"></div>
+          </div>
+        </aside>
       </div>
     </main>
     
+    <footer>
+      <p>&copy; 2025 Trip Go Classic | Made with ❤️ for travelers</p>
+    </footer>
+    
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script type="module" src="/src/js/entry/map.mjs"></script>
   </body>
 </html>
