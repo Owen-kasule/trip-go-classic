@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "lint": "eslint \"src/**/*.{js,mjs}\"",
     "format": "prettier -w \"src/**/*.{js,mjs,html,css}\"",
-    "test": "vitest run"
+    "test": "vitest run",
+    "deploy": "npm run build && gh-pages -d dist"
   },
   "keywords": [
     "travel",
