@@ -1,85 +1,366 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trip Go Classic</title>
-    <!-- Prevent aggressive caching -->
-    <meta http-equiv="Cache-Control" content="no-cache, max-age=0">
-    <meta http-equiv="Pragma" content="no-cache">
-    <!-- Preload critical resources -->
-    <link rel="preload" href="./src/css/main.css" as="style">
     <link rel="stylesheet" href="./src/css/main.css">
-    <!-- Add cache-busting parameter -->
-    <link rel="stylesheet" href="./src/css/main.css?v=1.0.1">
-  </head>
-  <body>
+    <style>
+        /* Override and fix CSS issues */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        header {
+            text-align: center;
+            color: white;
+            padding: 3rem 1rem 2rem;
+        }
+        
+        header h1 {
+            font-size: 3rem;
+            margin: 0 0 0.5rem 0;
+            font-weight: 700;
+        }
+        
+        header p {
+            font-size: 1.2rem;
+            margin: 0;
+            opacity: 0.9;
+        }
+        
+        nav {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.1);
+        }
+        
+        nav a {
+            padding: 0.75rem 1.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            transition: all 0.3s;
+            backdrop-filter: blur(10px);
+        }
+        
+        nav a:hover, nav a.nav-active {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        main {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+        }
+        
+        .search-section {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        .search-section h2 {
+            margin: 0 0 1.5rem 0;
+            color: #1f2937;
+            font-size: 1.8rem;
+        }
+        
+        .search-form {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .search-input {
+            flex: 1;
+            padding: 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+        
+        .btn-primary {
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+        }
+        
+        .search-results {
+            min-height: 200px;
+        }
+        
+        .place-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s;
+        }
+        
+        .place-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .place-name {
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+        
+        .place-address {
+            color: #6b7280;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+        
+        .btn-add {
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(135deg, #10b981, #047857);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+        
+        .btn-add:hover {
+            transform: translateY(-2px);
+        }
+        
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+        
+        .sidebar-section {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        .sidebar-section h3 {
+            margin: 0 0 1.5rem 0;
+            color: #1f2937;
+            font-size: 1.4rem;
+        }
+        
+        .itinerary-item {
+            padding: 1rem;
+            background: #f1f5f9;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .btn-remove {
+            padding: 0.5rem 1rem;
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        
+        .currency-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .currency-input-group {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        
+        .currency-input, .currency-select {
+            padding: 0.75rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+        
+        .currency-input {
+            flex: 1;
+        }
+        
+        .currency-select {
+            background: white;
+            cursor: pointer;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: #6b7280;
+            font-style: italic;
+        }
+        
+        .error {
+            background: #fef2f2;
+            border: 2px solid #fecaca;
+            color: #991b1b;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        
+        .success {
+            background: #f0fdf4;
+            border: 2px solid #bbf7d0;
+            color: #166534;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        
+        footer {
+            text-align: center;
+            color: white;
+            padding: 2rem;
+            margin-top: 3rem;
+            opacity: 0.8;
+        }
+        
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 2rem;
+            }
+            
+            main {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .search-form {
+                flex-direction: column;
+            }
+            
+            .search-section, .sidebar-section {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
     <header>
-      <h1>🌍 Trip Go Classic</h1>
-      <p>Plan your perfect journey with ease</p>
+        <h1>🌍 Trip Go Classic</h1>
+        <p>Plan your perfect journey with ease</p>
     </header>
     
     <nav>
-      <a href="./" class="nav-active">🔍 Search Places</a>
-      <a href="./map.html">🗺️ Map View</a>
+        <a href="./" class="nav-active">🔍 Search Places</a>
+        <a href="./map.html">🗺️ Map View</a>
     </nav>
     
     <main>
-      <div class="app-container">
         <section class="search-section">
-          <div class="search-container">
-            <h2>🔍 Discover Amazing Places</h2>
-            <div class="search-form">
-              <input 
-                type="text" 
-                id="searchInput" 
-                placeholder="Search for cities, attractions, restaurants..."
-                class="search-input"
-              >
-              <button id="searchBtn" class="btn-primary">Search</button>
+            <div class="search-container">
+                <h2>🔍 Discover Amazing Places</h2>
+                <div class="search-form">
+                    <input 
+                        type="text" 
+                        id="searchInput" 
+                        placeholder="Search for cities, attractions, restaurants..."
+                        class="search-input"
+                    >
+                    <button id="searchBtn" class="btn-primary">Search</button>
+                </div>
+                <div id="searchResults" class="search-results">
+                    <div class="loading">
+                        Enter a location to search for amazing places to visit! 🌟
+                    </div>
+                </div>
             </div>
-            <div id="searchResults" class="search-results"></div>
-          </div>
         </section>
         
         <aside class="sidebar">
-          <div class="itinerary-section">
-            <h3>📋 Your Itinerary</h3>
-            <div id="itineraryPlanner"></div>
-          </div>
-          
-          <div class="currency-section">
-            <h3>💱 Currency Converter</h3>
-            <div id="currencyConverter"></div>
-          </div>
+            <div class="sidebar-section">
+                <h3>📋 Your Itinerary</h3>
+                <div id="itineraryList">
+                    <p class="empty-message">Your itinerary is empty. Search and add places to get started!</p>
+                </div>
+                <div class="itinerary-actions">
+                    <button id="clearItinerary" class="btn-remove" style="display: none;">Clear All</button>
+                </div>
+            </div>
+            
+            <div class="sidebar-section">
+                <h3>💱 Currency Converter</h3>
+                <div class="currency-form">
+                    <div class="currency-input-group">
+                        <input type="number" id="fromAmount" class="currency-input" placeholder="Amount" value="100">
+                        <select id="fromCurrency" class="currency-select">
+                            <option value="USD">USD</option>
+                            <option value="EUR">EUR</option>
+                            <option value="GBP">GBP</option>
+                            <option value="UGX">UGX</option>
+                            <option value="KES">KES</option>
+                            <option value="TZS">TZS</option>
+                        </select>
+                    </div>
+                    <div class="conversion-arrow">⬇️</div>
+                    <div class="currency-input-group">
+                        <input type="number" id="toAmount" class="currency-input" placeholder="Converted amount" readonly>
+                        <select id="toCurrency" class="currency-select">
+                            <option value="UGX">UGX</option>
+                            <option value="USD">USD</option>
+                            <option value="EUR">EUR</option>
+                            <option value="GBP">GBP</option>
+                            <option value="KES">KES</option>
+                            <option value="TZS">TZS</option>
+                        </select>
+                    </div>
+                    <button id="convertBtn" class="btn-primary">Convert</button>
+                    <div id="conversionResult" class="conversion-result"></div>
+                </div>
+            </div>
         </aside>
-      </div>
     </main>
     
     <footer>
-      <p>&copy; 2025 Trip Go Classic | Made with ❤️ for travelers</p>
+        <p>&copy; 2025 Trip Go Classic | Made with ❤️ for travelers</p>
     </footer>
-    
-    <!-- Add cache-busting and error handling -->
-    <script>
-      // Handle GitHub Pages routing
-      const urlParams = new URLSearchParams(window.location.search);
-      const route = urlParams.get('route');
-      
-      if (route === 'map.html' || route === 'map') {
-        window.location.href = './map.html';
-      }
-      
-      // Error handling for module loading
-      window.addEventListener('error', (e) => {
-        console.error('Global error:', e);
-        if (e.message.includes('module')) {
-          console.log('Module loading error detected, attempting reload...');
-          setTimeout(() => window.location.reload(), 2000);
-        }
-      });
-    </script>
-    
-    <script type="module" src="./src/js/entry/home.mjs?v=1.0.1"></script>
-  </body>
+
+    <script src="./src/js/home-functionality.js"></script>
+</body>
 </html>
