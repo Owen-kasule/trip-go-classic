@@ -6,17 +6,33 @@ import MapView from '../ui/MapView.mjs';
 
 console.log('🗺️ Map page script loading...');
 
-document.addEventListener('DOMContentLoaded', () => {
-  console.log('🗺️ Map page DOM loaded');
-  
-  // Simple delay to ensure everything is loaded
+// Wait for both DOM and Leaflet to be ready
+function waitForLeafletAndDOM() {
+  return new Promise((resolve) => {
+    const checkReady = () => {
+      if (document.readyState === 'complete' && typeof window.L !== 'undefined') {
+        console.log('✅ Both DOM and Leaflet are ready');
+        resolve();
+      } else {
+        console.log('⏳ Waiting for DOM and Leaflet...');
+        setTimeout(checkReady, 100);
+      }
+    };
+    checkReady();
+  });
+}
+
+waitForLeafletAndDOM().then(() => {
+  // Additional delay to ensure everything is stable
   setTimeout(() => {
     initMapPage();
-  }, 1000);
+  }, 500);
 });
 
 function initMapPage() {
   try {
+    console.log('🚀 Initializing map page');
+    
     // Initialize map
     const mapView = new MapView('map');
     
@@ -48,34 +64,31 @@ function initMapPage() {
     const clearBtn = document.getElementById('clearMap');
     if (clearBtn) {
       clearBtn.addEventListener('click', () => {
-        if (confirm('Clear all places from your trip?')) {
-          localStorage.removeItem('tgc-itinerary');
-          window.location.reload();
+        if (confirm('Are you sure you want to clear all places from your itinerary?')) {
+          // Import clearItinerary dynamically to avoid circular deps
+          import('../itinerary.mjs').then(({ clearItinerary }) => {
+            clearItinerary();
+            mapView.renderPlaces();
+            mapView.updateStatus();
+            mapView.updateTripSummary();
+          });
         }
       });
     }
     
-    console.log('✅ Map page initialized');
+    console.log('✅ Map page initialized successfully');
     
   } catch (error) {
-    console.error('❌ Map initialization error:', error);
-    showMapError();
+    console.error('❌ Error initializing map page:', error);
   }
 }
 
-function showMapError() {
-  const mapElement = document.getElementById('map');
-  if (mapElement) {
-    mapElement.innerHTML = `
-      <div style="display: flex; align-items: center; justify-content: center; height: 100%; background: #f0f0f0; color: #666; padding: 2rem; text-align: center;">
-        <div>
-          <h3>🗺️ Map temporarily unavailable</h3>
-          <p>Please try refreshing the page</p>
-          <button onclick="window.location.reload()" style="padding: 0.5rem 1rem; background: #2563eb; color: white; border: none; border-radius: 4px;">
-            Refresh
-          </button>
-        </div>
-      </div>
-    `;
-  }
-}
+// Fallback initialization if everything else fails
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    if (!window.mapViewInitialized) {
+      console.log('🔄 Fallback map initialization');
+      initMapPage();
+    }
+  }, 2000);
+});
