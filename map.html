@@ -5,7 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Map - Trip Go Classic</title>
     <link rel="stylesheet" href="./src/css/main.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" 
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" 
+          crossorigin="" />
   </head>
   <body>
     <header>
@@ -28,7 +30,14 @@
               <button id="clearMap" class="btn-map btn-danger">🗑️ Clear All</button>
             </div>
           </div>
-          <div id="map" class="map-view"></div>
+          <div id="map" class="map-view">
+            <div id="map-loading" style="display: flex; align-items: center; justify-content: center; height: 100%; background: #f9f9f9; color: #666;">
+              <div style="text-align: center;">
+                <div style="font-size: 2rem; margin-bottom: 1rem;">🌍</div>
+                <p>Loading map...</p>
+              </div>
+            </div>
+          </div>
           <div class="map-info">
             <p id="mapStatus">Loading your trip locations...</p>
           </div>
@@ -47,7 +56,20 @@
       <p>&copy; 2025 Trip Go Classic | Made with ❤️ for travelers</p>
     </footer>
     
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Load Leaflet first -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" 
+            crossorigin=""></script>
+    
+    <!-- Debug script to check Leaflet loading -->
+    <script>
+      console.log('📦 Leaflet loading check:', typeof L !== 'undefined' ? '✅ Available' : '❌ Not loaded');
+      if (typeof L !== 'undefined') {
+        console.log('📍 Leaflet version:', L.version);
+      }
+    </script>
+    
+    <!-- Load our application -->
     <script type="module" src="./src/js/entry/map.mjs"></script>
   </body>
 </html>
