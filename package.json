@@ -27,7 +27,5 @@
     "prettier": "^2.0.0",
     "vitest": "^3.2.3"
   },
-  "dependencies": {
-    "leaflet": "^1.7.1"
-  }
+  "dependencies": {}
 }
