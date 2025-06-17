@@ -4,7 +4,7 @@
 
 import MapView from '../ui/MapView.mjs';
 
-console.log('🗺️ Map page script loading...');
+console.log('🗺️ Map entry script loaded');
 
 // Wait for both DOM and Leaflet to be ready
 function waitForLeafletAndDOM() {
@@ -29,7 +29,7 @@ waitForLeafletAndDOM().then(() => {
   }, 500);
 });
 
-function initMapPage() {
+export default function initMapPage() {
   try {
     console.log('🚀 Initializing map page');
     
