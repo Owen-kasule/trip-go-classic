@@ -1,4 +1,3 @@
-import L from 'leaflet';
 import { getPlaces, getTripDays } from '../itinerary.mjs';
 
 export default class MapView {
@@ -13,7 +12,8 @@ export default class MapView {
   }
 
   initWhenReady() {
-    if (typeof L !== 'undefined') {
+    // Use global L instead of imported L
+    if (typeof window.L !== 'undefined') {
       console.log('✅ Leaflet is available, initializing map');
       this.init();
     } else {
@@ -30,6 +30,9 @@ export default class MapView {
 
     try {
       console.log('🗺️ Initializing Leaflet map');
+      
+      // Use global L variable
+      const L = window.L;
       
       // Initialize Leaflet map with better options
       this.map = L.map(this.mapElement, {
@@ -98,134 +101,126 @@ export default class MapView {
 
   renderPlaces() {
     const places = getPlaces();
-    console.log('📍 Rendering places on map:', places.length);
+    console.log('🏠 Rendering places on map:', places.length);
+    
+    if (!this.map || !places.length) {
+      console.log('⚠️ No map or places to render');
+      return;
+    }
+
+    // Use global L variable
+    const L = window.L;
     
     // Clear existing markers
-    this.markers.forEach(marker => {
-      if (this.map) this.map.removeLayer(marker);
-    });
-    this.markers = [];
-
-    if (places.length === 0) {
-      this.updateStatus('No places in your trip yet. Add some places from the search page!');
-      return;
-    }
-
-    if (!this.map) {
-      console.error('❌ Map not initialized, cannot render places');
-      return;
-    }
+    this.clearMarkers();
 
     // Add markers for each place
-    const bounds = [];
-    
     places.forEach((place, index) => {
-      try {
-        const marker = L.marker([place.lat, place.lon])
-          .addTo(this.map)
-          .bindPopup(`
-            <div style="text-align: center; min-width: 150px;">
-              <h4 style="margin: 0 0 8px 0; color: #2563eb;">${place.name}</h4>
-              <p style="margin: 0 0 4px 0; color: #666; font-size: 0.9em;">${this.formatKind(place.kind)}</p>
-              <p style="margin: 8px 0 0 0; font-weight: bold; color: #f59e0b;">📅 Day ${place.day}</p>
-              <p style="margin: 4px 0 0 0; font-size: 0.8em; color: #888;">📍 ${place.lat.toFixed(4)}, ${place.lon.toFixed(4)}</p>
-            </div>
-          `);
-        
-        this.markers.push(marker);
-        bounds.push([place.lat, place.lon]);
-        
-        console.log(`📍 Added marker for ${place.name}`);
-      } catch (error) {
-        console.error('❌ Error adding marker for', place.name, error);
+      if (place.lat && place.lon) {
+        try {
+          const marker = L.marker([place.lat, place.lon])
+            .addTo(this.map)
+            .bindPopup(`
+              <div style="min-width: 200px;">
+                <h4 style="margin: 0 0 0.5rem 0;">${place.name}</h4>
+                ${place.address ? `<p style="margin: 0 0 0.5rem 0; color: #666;"><small>${place.address}</small></p>` : ''}
+                ${place.description ? `<p style="margin: 0;">${place.description}</p>` : ''}
+              </div>
+            `);
+          
+          this.markers.push(marker);
+          console.log(`✅ Added marker ${index + 1}: ${place.name}`);
+        } catch (error) {
+          console.error(`❌ Error adding marker for ${place.name}:`, error);
+        }
+      } else {
+        console.warn(`⚠️ Place ${place.name} has no coordinates`);
       }
     });
 
-    // Fit map to show all markers
-    if (bounds.length > 0) {
+    // Fit map to show all markers if we have places
+    if (this.markers.length > 0) {
       try {
-        this.map.fitBounds(bounds, { 
-          padding: [20, 20],
-          maxZoom: 12 
-        });
-        console.log('🎯 Map bounds fitted to show all places');
+        const group = new L.featureGroup(this.markers);
+        this.map.fitBounds(group.getBounds().pad(0.1));
+        console.log('🔍 Map bounds adjusted to fit all places');
       } catch (error) {
         console.error('❌ Error fitting bounds:', error);
       }
     }
-
-    this.updateStatus(`Showing ${places.length} places on your trip`);
   }
 
-  formatKind(kind) {
-    return kind?.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'Place';
-  }
-
-  updateStatus(message = null) {
-    const statusElement = document.getElementById('mapStatus');
-    if (statusElement) {
-      if (message) {
-        statusElement.textContent = message;
-      } else {
-        const places = getPlaces();
-        statusElement.textContent = places.length > 0 
-          ? `Showing ${places.length} places on your trip`
-          : 'No places added yet';
+  clearMarkers() {
+    // Use global L variable
+    const L = window.L;
+    
+    this.markers.forEach(marker => {
+      if (marker && this.map) {
+        this.map.removeLayer(marker);
       }
-    }
+    });
+    this.markers = [];
+    console.log('🧹 Cleared all markers');
   }
 
   centerMap() {
+    if (!this.map) return;
+    
     const places = getPlaces();
-    if (places.length > 0 && this.map) {
-      const bounds = places.map(place => [place.lat, place.lon]);
-      this.map.fitBounds(bounds, { padding: [20, 20] });
-      console.log('🎯 Map centered on trip locations');
-    } else if (this.map) {
-      this.map.setView([0.35, 32.6], 6); // Default to Uganda
-      console.log('🎯 Map centered on default location');
+    if (places.length > 0) {
+      // Use global L variable
+      const L = window.L;
+      
+      if (this.markers.length > 0) {
+        const group = new L.featureGroup(this.markers);
+        this.map.fitBounds(group.getBounds().pad(0.1));
+      }
+    } else {
+      // Default to Uganda if no places
+      this.map.setView([0.35, 32.6], 6);
     }
+    console.log('🎯 Map centered');
   }
 
-  clearAllPlaces() {
-    localStorage.removeItem('tgc-itinerary');
-    this.renderPlaces();
-    this.updateTripSummary();
-    console.log('🗑️ All places cleared from trip');
+  updateStatus() {
+    const statusElement = document.getElementById('mapStatus');
+    if (!statusElement) return;
+
+    const places = getPlaces();
+    if (places.length === 0) {
+      statusElement.textContent = 'No places in your itinerary yet. Start by searching and adding places!';
+    } else {
+      statusElement.textContent = `Showing ${places.length} place${places.length === 1 ? '' : 's'} on your map`;
+    }
   }
 
   updateTripSummary() {
     const summaryElement = document.getElementById('tripSummary');
     if (!summaryElement) return;
 
-    const places = getPlaces();
-    const days = getTripDays();
+    const tripDays = getTripDays();
     
-    if (places.length === 0) {
-      summaryElement.innerHTML = '<p style="color: #6b7280; text-align: center; font-style: italic;">No places in your trip yet</p>';
+    if (tripDays.length === 0) {
+      summaryElement.innerHTML = `
+        <p style="color: #666; font-style: italic;">
+          Your itinerary is empty. <a href="./" style="color: #2563eb;">Start planning your trip!</a>
+        </p>
+      `;
       return;
     }
 
-    const summary = `
-      <div class="summary-item">
-        <span class="summary-label">Total Places</span>
-        <span class="summary-value">${places.length}</span>
-      </div>
-      <div class="summary-item">
-        <span class="summary-label">Trip Duration</span>
-        <span class="summary-value">${days.length} day${days.length !== 1 ? 's' : ''}</span>
-      </div>
-      <div class="summary-item">
-        <span class="summary-label">Countries</span>
-        <span class="summary-value">1</span>
-      </div>
-      <div class="summary-item">
-        <span class="summary-label">Last Updated</span>
-        <span class="summary-value">${new Date().toLocaleDateString()}</span>
-      </div>
-    `;
-    
-    summaryElement.innerHTML = summary;
-    console.log('📊 Trip summary updated');
+    let summaryHTML = '';
+    tripDays.forEach((day, index) => {
+      summaryHTML += `
+        <div style="margin-bottom: 1rem; padding: 1rem; border: 1px solid #e0e0e0; border-radius: 4px;">
+          <h4 style="margin: 0 0 0.5rem 0;">Day ${index + 1}</h4>
+          <ul style="margin: 0; padding-left: 1.5rem;">
+            ${day.places.map(place => `<li>${place.name}</li>`).join('')}
+          </ul>
+        </div>
+      `;
+    });
+
+    summaryElement.innerHTML = summaryHTML;
   }
 }
