@@ -129,6 +129,7 @@ function initHomeApp() {
       if (e.key === 'Enter') search();
     });
 
+    // Auto-suggest with debouncing
     let searchTimeout;
     searchInput.addEventListener('input', (e) => {
       clearTimeout(searchTimeout);
@@ -177,6 +178,17 @@ function initHomeApp() {
     }
   }
 
+  // Refresh itinerary when storage changes
+  window.addEventListener('storage', () => {
+    itineraryPlanner.render();
+  });
+
+  // Periodic refresh for itinerary
+  setInterval(() => {
+    itineraryPlanner.render();
+  }, 3000);
+
+  // Initial message
   if (contentHeader) {
     contentHeader.textContent = 'Start by searching for places above';
   }

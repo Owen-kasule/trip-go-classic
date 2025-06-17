@@ -6,117 +6,76 @@ import MapView from '../ui/MapView.mjs';
 
 console.log('🗺️ Map page script loading...');
 
-// Function to load Leaflet if not already loaded
-function ensureLeafletLoaded() {
-  return new Promise((resolve, reject) => {
-    if (typeof L !== 'undefined') {
-      console.log('✅ Leaflet already loaded');
-      resolve();
-      return;
-    }
-
-    console.log('📦 Loading Leaflet library...');
-    
-    // Load CSS
-    const cssLink = document.createElement('link');
-    cssLink.rel = 'stylesheet';
-    cssLink.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-    document.head.appendChild(cssLink);
-
-    // Load JS
-    const script = document.createElement('script');
-    script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-    script.onload = () => {
-      console.log('✅ Leaflet loaded successfully');
-      resolve();
-    };
-    script.onerror = (error) => {
-      console.error('❌ Failed to load Leaflet:', error);
-      reject(error);
-    };
-    document.head.appendChild(script);
-  });
-}
-
-document.addEventListener('DOMContentLoaded', async () => {
-  console.log('🗺️ Map page DOM loaded, initializing...');
+document.addEventListener('DOMContentLoaded', () => {
+  console.log('🗺️ Map page DOM loaded');
   
+  // Simple delay to ensure everything is loaded
+  setTimeout(() => {
+    initMapPage();
+  }, 1000);
+});
+
+function initMapPage() {
   try {
-    // Ensure Leaflet is loaded
-    await ensureLeafletLoaded();
-    
     // Initialize map
     const mapView = new MapView('map');
     
     // Update trip summary
-    mapView.updateTripSummary();
+    if (mapView.updateTripSummary) {
+      mapView.updateTripSummary();
+    }
     
-    // Handle back to search button
+    // Handle back button
     const backBtn = document.getElementById('backToSearch');
     if (backBtn) {
       backBtn.addEventListener('click', (e) => {
         e.preventDefault();
-        console.log('🔙 Back button clicked');
-        
-        // Try to go back in history, fallback to home page
-        if (window.history.length > 1 && document.referrer) {
-          window.history.back();
-        } else {
-          window.location.href = './';
-        }
+        window.location.href = './';
       });
     }
     
-    // Bind control events
+    // Handle center button
     const centerBtn = document.getElementById('centerMap');
-    const clearBtn = document.getElementById('clearMap');
-    
     if (centerBtn) {
       centerBtn.addEventListener('click', () => {
-        console.log('🎯 Center map button clicked');
-        mapView.centerMap();
-      });
-    }
-    
-    if (clearBtn) {
-      clearBtn.addEventListener('click', () => {
-        if (confirm('Are you sure you want to clear all places from your trip?')) {
-          console.log('🗑️ Clearing all places');
-          mapView.clearAllPlaces();
+        if (mapView.centerMap) {
+          mapView.centerMap();
         }
       });
     }
     
-    // Listen for storage changes to update map
-    window.addEventListener('storage', () => {
-      console.log('💾 Storage changed, updating map');
-      mapView.renderPlaces();
-      mapView.updateTripSummary();
-    });
+    // Handle clear button
+    const clearBtn = document.getElementById('clearMap');
+    if (clearBtn) {
+      clearBtn.addEventListener('click', () => {
+        if (confirm('Clear all places from your trip?')) {
+          localStorage.removeItem('tgc-itinerary');
+          window.location.reload();
+        }
+      });
+    }
     
-    // Periodic refresh
-    setInterval(() => {
-      mapView.renderPlaces();
-      mapView.updateTripSummary();
-    }, 5000);
-    
-    console.log('✅ Map page initialization complete!');
+    console.log('✅ Map page initialized');
     
   } catch (error) {
-    console.error('❌ Failed to initialize map page:', error);
-    
-    // Show error message in the map container
-    const mapElement = document.getElementById('map');
-    if (mapElement) {
-      mapElement.innerHTML = `
-        <div style="display: flex; align-items: center; justify-content: center; height: 100%; flex-direction: column; background: #f0f0f0; color: #666; padding: 2rem; text-align: center;">
-          <h3 style="margin: 0 0 1rem 0; color: #dc2626;">🚫 Map Failed to Load</h3>
-          <p style="margin: 0 0 1rem 0;">Unable to load the map component. Please check your internet connection and try again.</p>
-          <button onclick="window.location.reload()" style="padding: 0.75rem 1.5rem; background: #2563eb; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
-            🔄 Reload Page
+    console.error('❌ Map initialization error:', error);
+    showMapError();
+  }
+}
+
+function showMapError() {
+  const mapElement = document.getElementById('map');
+  if (mapElement) {
+    mapElement.innerHTML = `
+      <div style="display: flex; align-items: center; justify-content: center; height: 100%; background: #f0f0f0; color: #666; padding: 2rem; text-align: center;">
+        <div>
+          <h3>🗺️ Map temporarily unavailable</h3>
+          <p>Please try refreshing the page</p>
+          <button onclick="window.location.reload()" style="padding: 0.5rem 1rem; background: #2563eb; color: white; border: none; border-radius: 4px;">
+            Refresh
           </button>
         </div>
-      `;
-    }
+      </div>
+    `;
   }
-});
+}
