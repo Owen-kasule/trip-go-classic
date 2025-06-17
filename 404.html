@@ -4,13 +4,37 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Trip Go Classic</title>
+    <!-- Prevent caching of this redirect page -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <script>
-        // GitHub Pages SPA redirect
-        const path = window.location.pathname.slice(1);
-        if (path && path !== 'index.html') {
-            window.location.replace('/trip-go-classic/?route=' + path);
+        // GitHub Pages SPA redirect with better error handling
+        console.log('404 redirect triggered');
+        
+        const path = window.location.pathname;
+        const basePath = '/trip-go-classic/';
+        
+        // Remove base path and redirect to index with route parameter
+        if (path.startsWith(basePath)) {
+            const route = path.slice(basePath.length);
+            if (route && route !== 'index.html' && route !== '') {
+                const newUrl = basePath + '?route=' + encodeURIComponent(route);
+                console.log('Redirecting to:', newUrl);
+                window.location.replace(newUrl);
+            } else {
+                window.location.replace(basePath);
+            }
+        } else {
+            // Fallback redirect
+            window.location.replace(basePath);
         }
     </script>
 </head>
-<body></body>
+<body>
+    <div style="text-align: center; padding: 2rem;">
+        <h2>Redirecting...</h2>
+        <p>If you're not redirected automatically, <a href="/trip-go-classic/">click here</a>.</p>
+    </div>
+</body>
 </html>

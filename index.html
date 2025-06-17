@@ -2,45 +2,57 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="./vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Trip Go Classic - Plan Your Perfect Trip</title>
-    <meta name="description" content="Plan your perfect trip with Trip Go Classic. Search places, manage itinerary, and convert currencies.">
+    <title>Trip Go Classic</title>
+    <!-- Prevent aggressive caching -->
+    <meta http-equiv="Cache-Control" content="no-cache, max-age=0">
+    <meta http-equiv="Pragma" content="no-cache">
+    <!-- Preload critical resources -->
+    <link rel="preload" href="./src/css/main.css" as="style">
     <link rel="stylesheet" href="./src/css/main.css">
+    <!-- Add cache-busting parameter -->
+    <link rel="stylesheet" href="./src/css/main.css?v=1.0.1">
   </head>
   <body>
     <header>
       <h1>🌍 Trip Go Classic</h1>
-      <p>Plan your perfect adventure</p>
+      <p>Plan your perfect journey with ease</p>
     </header>
     
     <nav>
-      <a href="#home">🏠 Home</a>
-      <a href="#map">🗺️ Map View</a>
+      <a href="./" class="nav-active">🔍 Search Places</a>
+      <a href="./map.html">🗺️ Map View</a>
     </nav>
-    
-    <section class="search-section">
-      <div class="search-bar">
-        <input type="text" id="searchInput" placeholder="Search for places, attractions, restaurants..." />
-        <button id="searchBtn">🔍 Search</button>
-      </div>
-    </section>
     
     <main>
       <div class="app-container">
-        <div class="app-grid">
-          <div class="content-area">
-            <div class="content-header">
-              <h2>Search Results</h2>
+        <section class="search-section">
+          <div class="search-container">
+            <h2>🔍 Discover Amazing Places</h2>
+            <div class="search-form">
+              <input 
+                type="text" 
+                id="searchInput" 
+                placeholder="Search for cities, attractions, restaurants..."
+                class="search-input"
+              >
+              <button id="searchBtn" class="btn-primary">Search</button>
             </div>
-            <div class="card-grid"></div>
+            <div id="searchResults" class="search-results"></div>
+          </div>
+        </section>
+        
+        <aside class="sidebar">
+          <div class="itinerary-section">
+            <h3>📋 Your Itinerary</h3>
+            <div id="itineraryPlanner"></div>
           </div>
           
-          <aside class="sidebar">
-            <div class="currency-section"></div>
-            <div class="itinerary-section"></div>
-          </aside>
-        </div>
+          <div class="currency-section">
+            <h3>💱 Currency Converter</h3>
+            <div id="currencyConverter"></div>
+          </div>
+        </aside>
       </div>
     </main>
     
@@ -48,6 +60,26 @@
       <p>&copy; 2025 Trip Go Classic | Made with ❤️ for travelers</p>
     </footer>
     
-    <script type="module" src="./src/js/entry/home.mjs"></script>
+    <!-- Add cache-busting and error handling -->
+    <script>
+      // Handle GitHub Pages routing
+      const urlParams = new URLSearchParams(window.location.search);
+      const route = urlParams.get('route');
+      
+      if (route === 'map.html' || route === 'map') {
+        window.location.href = './map.html';
+      }
+      
+      // Error handling for module loading
+      window.addEventListener('error', (e) => {
+        console.error('Global error:', e);
+        if (e.message.includes('module')) {
+          console.log('Module loading error detected, attempting reload...');
+          setTimeout(() => window.location.reload(), 2000);
+        }
+      });
+    </script>
+    
+    <script type="module" src="./src/js/entry/home.mjs?v=1.0.1"></script>
   </body>
 </html>

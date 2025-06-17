@@ -4,10 +4,31 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Map - Trip Go Classic</title>
-    <link rel="stylesheet" href="./src/css/main.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" 
-          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" 
-          crossorigin="" />
+    <!-- Prevent caching issues -->
+    <meta http-equiv="Cache-Control" content="no-cache, max-age=0">
+    <meta http-equiv="Pragma" content="no-cache">
+    <link rel="stylesheet" href="./src/css/main.css?v=1.0.1">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+      /* Force map dimensions */
+      #map {
+        height: 500px !important;
+        width: 100% !important;
+        background: #f0f0f0;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+      }
+      .map-loading {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 500px;
+        background: #f9f9f9;
+        color: #666;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+      }
+    </style>
   </head>
   <body>
     <header>
@@ -30,14 +51,16 @@
               <button id="clearMap" class="btn-map btn-danger">🗑️ Clear All</button>
             </div>
           </div>
-          <div id="map" class="map-view">
-            <div id="map-loading" style="display: flex; align-items: center; justify-content: center; height: 100%; background: #f9f9f9; color: #666;">
-              <div style="text-align: center;">
-                <div style="font-size: 2rem; margin-bottom: 1rem;">🌍</div>
-                <p>Loading map...</p>
-              </div>
+          
+          <div id="map-loading" class="map-loading">
+            <div style="text-align: center;">
+              <div style="font-size: 2rem; margin-bottom: 1rem;">🌍</div>
+              <p>Loading map...</p>
             </div>
           </div>
+          
+          <div id="map"></div>
+          
           <div class="map-info">
             <p id="mapStatus">Loading your trip locations...</p>
           </div>
@@ -46,7 +69,9 @@
         <aside class="map-sidebar">
           <div class="trip-summary">
             <h3>📋 Trip Summary</h3>
-            <div id="tripSummary"></div>
+            <div id="tripSummary">
+              <p style="color: #666; font-style: italic;">Loading trip summary...</p>
+            </div>
           </div>
         </aside>
       </div>
@@ -56,20 +81,303 @@
       <p>&copy; 2025 Trip Go Classic | Made with ❤️ for travelers</p>
     </footer>
     
-    <!-- Load Leaflet first -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" 
-            crossorigin=""></script>
-    
-    <!-- Debug script to check Leaflet loading -->
+    <!-- Error handling and fallbacks -->
     <script>
-      console.log('📦 Leaflet loading check:', typeof L !== 'undefined' ? '✅ Available' : '❌ Not loaded');
-      if (typeof L !== 'undefined') {
-        console.log('📍 Leaflet version:', L.version);
-      }
+      // Global error handler
+      window.addEventListener('error', (e) => {
+        console.error('Page error:', e);
+        document.getElementById('map-loading').innerHTML = `
+          <div style="text-align: center; color: #dc2626;">
+            <h3>⚠️ Loading Error</h3>
+            <p>There was an issue loading the page.</p>
+            <button onclick="window.location.reload()" style="padding: 0.5rem 1rem; background: #2563eb; color: white; border: none; border-radius: 4px; cursor: pointer;">
+              🔄 Reload Page
+            </button>
+          </div>
+        `;
+      });
     </script>
     
-    <!-- Load our application -->
-    <script type="module" src="./src/js/entry/map.mjs"></script>
+    <!-- Load Leaflet with integrity check -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" 
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" 
+            crossorigin=""
+            onerror="console.error('Failed to load Leaflet')"></script>
+    
+    <!-- Inline map functionality to avoid module loading issues -->
+    <script>
+      console.log('🗺️ Starting bulletproof map initialization...');
+      
+      let map = null;
+      let markers = [];
+      
+      function getPlaces() {
+        try {
+          const stored = localStorage.getItem('tripPlaces');
+          return stored ? JSON.parse(stored) : [];
+        } catch (e) {
+          console.error('Error getting places:', e);
+          return [];
+        }
+      }
+      
+      function clearItinerary() {
+        try {
+          localStorage.removeItem('tripPlaces');
+          console.log('✅ Itinerary cleared');
+          return true;
+        } catch (e) {
+          console.error('Error clearing itinerary:', e);
+          return false;
+        }
+      }
+      
+      function initMap() {
+        console.log('🗺️ Initializing map...');
+        
+        const mapElement = document.getElementById('map');
+        const loadingElement = document.getElementById('map-loading');
+        
+        if (!mapElement) {
+          console.error('❌ Map element not found');
+          return;
+        }
+        
+        if (typeof L === 'undefined') {
+          console.error('❌ Leaflet not loaded');
+          showMapError('Leaflet library failed to load');
+          return;
+        }
+        
+        try {
+          // Hide loading, show map
+          if (loadingElement) loadingElement.style.display = 'none';
+          mapElement.style.display = 'block';
+          
+          // Create map
+          map = L.map('map').setView([0.35, 32.6], 6);
+          
+          // Add tiles with error handling
+          const tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors',
+            maxZoom: 19,
+            timeout: 10000
+          });
+          
+          tileLayer.on('tileerror', (error) => {
+            console.error('❌ Tile loading error:', error);
+          });
+          
+          tileLayer.addTo(map);
+          
+          console.log('✅ Map created successfully');
+          
+          // Force resize after a moment
+          setTimeout(() => {
+            if (map) {
+              map.invalidateSize();
+              console.log('🔄 Map size invalidated');
+            }
+          }, 100);
+          
+          // Load places
+          loadPlaces();
+          updateSummary();
+          updateStatus();
+          
+        } catch (error) {
+          console.error('❌ Error creating map:', error);
+          showMapError('Failed to initialize map: ' + error.message);
+        }
+      }
+      
+      function loadPlaces() {
+        if (!map) return;
+        
+        console.log('📍 Loading places...');
+        const places = getPlaces();
+        
+        // Clear existing markers
+        markers.forEach(marker => map.removeLayer(marker));
+        markers = [];
+        
+        if (places.length === 0) {
+          console.log('ℹ️ No places to show');
+          return;
+        }
+        
+        // Add markers
+        places.forEach((place, index) => {
+          if (place.lat && place.lon) {
+            try {
+              const marker = L.marker([place.lat, place.lon])
+                .addTo(map)
+                .bindPopup(`
+                  <div>
+                    <h4 style="margin: 0 0 0.5rem 0;">${place.name}</h4>
+                    ${place.address ? `<p style="margin: 0; color: #666;"><small>${place.address}</small></p>` : ''}
+                  </div>
+                `);
+              
+              markers.push(marker);
+              console.log(`✅ Added marker: ${place.name}`);
+            } catch (error) {
+              console.error(`❌ Error adding marker for ${place.name}:`, error);
+            }
+          }
+        });
+        
+        // Fit bounds if we have markers
+        if (markers.length > 0) {
+          try {
+            const group = new L.featureGroup(markers);
+            map.fitBounds(group.getBounds().pad(0.1));
+            console.log('🔍 Map fitted to markers');
+          } catch (error) {
+            console.error('❌ Error fitting bounds:', error);
+          }
+        }
+      }
+      
+      function updateSummary() {
+        const summaryElement = document.getElementById('tripSummary');
+        if (!summaryElement) return;
+        
+        const places = getPlaces();
+        
+        if (places.length === 0) {
+          summaryElement.innerHTML = `
+            <p style="color: #666; font-style: italic;">
+              Your itinerary is empty. <a href="./" style="color: #2563eb;">Start planning your trip!</a>
+            </p>
+          `;
+          return;
+        }
+        
+        let html = `<div style="margin-bottom: 1rem;">
+          <h4>📍 ${places.length} Place${places.length === 1 ? '' : 's'}</h4>
+          <ul style="margin: 0; padding-left: 1.5rem;">`;
+        
+        places.forEach(place => {
+          html += `<li>${place.name}</li>`;
+        });
+        
+        html += `</ul></div>`;
+        summaryElement.innerHTML = html;
+      }
+      
+      function updateStatus() {
+        const statusElement = document.getElementById('mapStatus');
+        if (!statusElement) return;
+        
+        const places = getPlaces();
+        if (places.length === 0) {
+          statusElement.textContent = 'No places in your itinerary yet. Start by searching and adding places!';
+        } else {
+          statusElement.textContent = `Showing ${places.length} place${places.length === 1 ? '' : 's'} on your map`;
+        }
+      }
+      
+      function showMapError(message) {
+        const mapElement = document.getElementById('map');
+        const loadingElement = document.getElementById('map-loading');
+        
+        if (loadingElement) loadingElement.style.display = 'none';
+        
+        if (mapElement) {
+          mapElement.innerHTML = `
+            <div style="display: flex; align-items: center; justify-content: center; height: 500px; background: #f0f0f0; color: #666; border: 1px solid #ddd; border-radius: 8px;">
+              <div style="text-align: center; padding: 2rem;">
+                <h3 style="margin: 0 0 1rem 0;">🗺️ Map Error</h3>
+                <p style="margin: 0 0 1rem 0;">${message}</p>
+                <button onclick="window.location.reload()" style="padding: 0.5rem 1rem; background: #2563eb; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                  🔄 Reload Page
+                </button>
+              </div>
+            </div>
+          `;
+        }
+      }
+      
+      // Wait for everything to load with timeout
+      function waitAndInit() {
+        let attempts = 0;
+        const maxAttempts = 50; // 5 seconds max
+        
+        const checkReady = () => {
+          attempts++;
+          
+          if (typeof L !== 'undefined' && document.readyState === 'complete') {
+            console.log('✅ Ready to initialize map');
+            setTimeout(initMap, 500);
+          } else if (attempts < maxAttempts) {
+            console.log(`⏳ Waiting for dependencies... (${attempts}/${maxAttempts})`);
+            setTimeout(checkReady, 100);
+          } else {
+            console.error('❌ Timeout waiting for dependencies');
+            showMapError('Timeout loading required resources');
+          }
+        };
+        
+        checkReady();
+      }
+      
+      // Start initialization
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', waitAndInit);
+      } else {
+        waitAndInit();
+      }
+      
+      // Button handlers with error handling
+      window.addEventListener('load', () => {
+        try {
+          // Back button
+          const backBtn = document.getElementById('backToSearch');
+          if (backBtn) {
+            backBtn.addEventListener('click', (e) => {
+              e.preventDefault();
+              window.location.href = './';
+            });
+          }
+          
+          // Center button
+          const centerBtn = document.getElementById('centerMap');
+          if (centerBtn) {
+            centerBtn.addEventListener('click', () => {
+              try {
+                if (map && markers.length > 0) {
+                  const group = new L.featureGroup(markers);
+                  map.fitBounds(group.getBounds().pad(0.1));
+                } else if (map) {
+                  map.setView([0.35, 32.6], 6);
+                }
+              } catch (error) {
+                console.error('Error centering map:', error);
+              }
+            });
+          }
+          
+          // Clear button
+          const clearBtn = document.getElementById('clearMap');
+          if (clearBtn) {
+            clearBtn.addEventListener('click', () => {
+              if (confirm('Are you sure you want to clear all places from your itinerary?')) {
+                try {
+                  clearItinerary();
+                  loadPlaces();
+                  updateSummary();
+                  updateStatus();
+                } catch (error) {
+                  console.error('Error clearing itinerary:', error);
+                }
+              }
+            });
+          }
+        } catch (error) {
+          console.error('Error setting up button handlers:', error);
+        }
+      });
+    </script>
   </body>
 </html>
