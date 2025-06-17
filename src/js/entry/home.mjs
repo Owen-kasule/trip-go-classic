@@ -30,33 +30,63 @@ function showHomeView() {
     </nav>
     
     <section class="search-section">
-      <div class="search-bar">
-        <input type="text" id="searchInput" placeholder="Search for places, attractions, restaurants..." />
-        <button id="searchBtn">🔍 Search</button>
+      <div class="search-container">
+        <h2>🔍 Discover Amazing Places</h2>
+        <div class="search-form">
+          <input 
+            type="text" 
+            id="searchInput" 
+            placeholder="Search for cities, attractions, restaurants..."
+            class="search-input"
+          >
+          <button id="searchBtn" class="btn-primary">Search</button>
+        </div>
+        <div id="searchResults" class="search-results">
+          <div class="loading" style="display: none;" id="searchLoading">
+            <div>🔍 Searching...</div>
+          </div>
+        </div>
       </div>
     </section>
     
-    <main>
-      <div class="app-container">
-        <div class="app-grid">
-          <div class="content-area">
-            <div class="content-header">
-              <h2>Search Results</h2>
-            </div>
-            <div class="card-grid"></div>
-          </div>
-          
-          <aside class="sidebar">
-            <div class="currency-section"></div>
-            <div class="itinerary-section"></div>
-          </aside>
+    <div class="sidebar">
+      <div class="sidebar-section">
+        <h3>📋 Your Itinerary</h3>
+        <div id="itineraryList">
+          <p style="color: #6b7280; font-style: italic;">Your itinerary is empty. Search and add places to get started!</p>
+        </div>
+        <div style="margin-top: 1rem;">
+          <button id="clearItinerary" class="btn-remove" style="display: none;">Clear All</button>
         </div>
       </div>
-    </main>
-    
-    <footer>
-      <p>&copy; 2025 Trip Go Classic | Made with ❤️ for travelers</p>
-    </footer>
+      
+      <div class="sidebar-section">
+        <h3>💱 Currency Converter</h3>
+        <div class="currency-form">
+          <div class="currency-input-group">
+            <input type="number" id="fromAmount" class="currency-input" placeholder="Amount" value="100">
+            <select id="fromCurrency" class="currency-select">
+              <option value="USD">USD</option>
+              <option value="EUR">EUR</option>
+              <option value="GBP">GBP</option>
+              <option value="UGX">UGX</option>
+            </select>
+          </div>
+          <div style="text-align: center;">↓</div>
+          <div class="currency-input-group">
+            <input type="number" id="toAmount" class="currency-input" placeholder="Converted amount" readonly>
+            <select id="toCurrency" class="currency-select">
+              <option value="UGX">UGX</option>
+              <option value="USD">USD</option>
+              <option value="EUR">EUR</option>
+              <option value="GBP">GBP</option>
+            </select>
+          </div>
+          <button id="convertBtn" class="btn-primary">Convert</button>
+          <div id="conversionResult" style="margin-top: 1rem; font-size: 0.875rem; color: #6b7280;"></div>
+        </div>
+      </div>
+    </div>
   `;
   
   initHomeApp();
